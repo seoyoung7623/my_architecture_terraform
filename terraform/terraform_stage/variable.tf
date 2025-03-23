@@ -39,12 +39,13 @@ variable "vpc_ip_range" {
 ##Instance
 variable "ami"{
   type = string
-  default = "ami-04c596dcf23eb98d8"
+  default = "ami-0d5bb3742db8fc264" # Ubuntu 24.04
 }
 variable "instance_type" {
   type = string
   default = "t2.micro"
 }
+
 variable "instance_ebs_size" {
   type = number
   default = 20
@@ -52,6 +53,10 @@ variable "instance_ebs_size" {
 variable "instance_ebs_volume" {
   type = string
   default = "gp3"
+}
+
+variable "ssh_allow_ingress_list" {
+  default = ["211.192.32.69/32"]
 }
 
 # variable "instance_user_data" {
