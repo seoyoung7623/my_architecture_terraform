@@ -16,6 +16,6 @@ variable "az" {
   type = list(any)
 }
 
-variable "vpc_ip_range" {
+variable "vpc_cidr" {
   type = string
 }

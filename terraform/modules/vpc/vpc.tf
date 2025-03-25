@@ -1,6 +1,6 @@
 # VPC
 resource "aws_vpc" "aws-vpc" {
-  cidr_block           = var.vpc_ip_range
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = merge(tomap({ # merge 함수를 사용하여 기본 태그와 사용자 정의 태그를 병합
@@ -10,7 +10,7 @@ resource "aws_vpc" "aws-vpc" {
 
 resource "aws_subnet" "subnet-public-az1" {
   vpc_id                  = aws_vpc.aws-vpc.id
-  cidr_block              = cidrsubnet(var.vpc_ip_range, 3, 0)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 3, 0)
   availability_zone       = var.az[0]
   map_public_ip_on_launch = true
   tags = merge(tomap({
@@ -23,7 +23,7 @@ resource "aws_subnet" "subnet-public-az1" {
 
 resource "aws_subnet" "subnet-public-az2" {
   vpc_id                  = aws_vpc.aws-vpc.id
-  cidr_block              = cidrsubnet(var.vpc_ip_range, 3, 1)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 3, 1)
   availability_zone       = var.az[1]
   map_public_ip_on_launch = true
   tags = merge(tomap({
@@ -37,7 +37,7 @@ resource "aws_subnet" "subnet-public-az2" {
 # 프라이빗 서브넷 WEB
 resource "aws_subnet" "subnet-service-az1" {
   vpc_id            = aws_vpc.aws-vpc.id
-  cidr_block        = cidrsubnet(var.vpc_ip_range, 3, 2)
+  cidr_block        = cidrsubnet(var.vpc_cidr, 3, 2)
   availability_zone = var.az[0]
   tags = merge(tomap({
     Name = "subnet-service-az1-${var.stage}-${var.servicename}" }),
@@ -49,7 +49,7 @@ resource "aws_subnet" "subnet-service-az1" {
 
 resource "aws_subnet" "subnet-service-az2" {
   vpc_id            = aws_vpc.aws-vpc.id
-  cidr_block        = cidrsubnet(var.vpc_ip_range, 3, 3)
+  cidr_block        = cidrsubnet(var.vpc_cidr, 3, 3)
   availability_zone = var.az[1]
   tags = merge(tomap({
     Name = "subnet-service-az2-${var.stage}-${var.servicename}" }),
@@ -62,7 +62,7 @@ resource "aws_subnet" "subnet-service-az2" {
 # 프라이빗 서브넷 WAS
 resource "aws_subnet" "subnet_private_az1" {
   vpc_id            = aws_vpc.aws-vpc.id
-  cidr_block        = cidrsubnet(var.vpc_ip_range, 3, 4)
+  cidr_block        = cidrsubnet(var.vpc_cidr, 3, 4)
   availability_zone = var.az[0]
   tags = merge(tomap({
     Name = "subnet-private-az1-${var.stage}-${var.servicename}" }),
@@ -74,7 +74,7 @@ resource "aws_subnet" "subnet_private_az1" {
 
 resource "aws_subnet" "subnet_private_az2" {
   vpc_id            = aws_vpc.aws-vpc.id
-  cidr_block        = cidrsubnet(var.vpc_ip_range, 3, 5)
+  cidr_block        = cidrsubnet(var.vpc_cidr, 3, 5)
   availability_zone = var.az[1]
   tags = merge(tomap({
     Name = "subnet-private-az2-${var.stage}-${var.servicename}" }),
@@ -87,7 +87,7 @@ resource "aws_subnet" "subnet_private_az2" {
 # DB 서브넷
 resource "aws_subnet" "subnet_db_az1" {
   vpc_id            = aws_vpc.aws-vpc.id
-  cidr_block        = cidrsubnet(var.vpc_ip_range, 3, 6)
+  cidr_block        = cidrsubnet(var.vpc_cidr, 3, 6)
   availability_zone = var.az[0]
   tags = merge(tomap({
     Name = "subnet-db-az1-${var.stage}-${var.servicename}" }),
@@ -99,7 +99,7 @@ resource "aws_subnet" "subnet_db_az1" {
 
 resource "aws_subnet" "subnet_db_az2" {
   vpc_id            = aws_vpc.aws-vpc.id
-  cidr_block        = cidrsubnet(var.vpc_ip_range, 3, 7)
+  cidr_block        = cidrsubnet(var.vpc_cidr, 3, 7)
   availability_zone = var.az[1]
   tags = merge(tomap({
     Name = "subnet-db-az2-${var.stage}-${var.servicename}" }),
@@ -148,3 +148,73 @@ resource "aws_route_table_association" "public-az2" {
   route_table_id = aws_route_table.public.id
 }
 
+# NAT Gateway 생성
+resource "aws_eip" "eip1" {
+  domain = "vpc"
+}
+
+resource "aws_eip" "eip2" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "nat-gateway-az1" {
+  allocation_id = aws_eip.eip1.id
+  subnet_id     = aws_subnet.subnet-public-az1.id
+  depends_on = [ aws_internet_gateway.aws-igw ]
+  tags = merge(tomap({
+    Name = "nat-gateway-az1-${var.stage}-${var.servicename}" }),
+  var.tags)
+}
+
+resource "aws_nat_gateway" "nat-gateway-az2" {
+  allocation_id = aws_eip.eip2.id
+  subnet_id     = aws_subnet.subnet-public-az2.id
+  depends_on = [ aws_internet_gateway.aws-igw ]
+  tags = merge(tomap({
+    Name = "nat-gateway-az2-${var.stage}-${var.servicename}" }),
+  var.tags)
+  
+}
+
+resource "aws_route_table" "private_rt1" {
+  vpc_id = aws_vpc.aws-vpc.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat-gateway-az1.id
+  }
+
+  tags = merge(tomap({
+    Name = "private-${var.stage}-${var.servicename}" }),
+  var.tags)
+}
+
+resource "aws_route_table" "private_rt2" {
+  vpc_id = aws_vpc.aws-vpc.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat-gateway-az2.id
+  }
+  tags = merge(tomap({
+    Name = "private-${var.stage}-${var.servicename}" }),
+  var.tags)
+}
+
+resource "aws_route_table_association" "private_subnet_rt_assoc1" {
+  subnet_id      = aws_subnet.subnet_private_az1.id
+  route_table_id = aws_route_table.private_rt1.id
+}
+
+resource "aws_route_table_association" "private_subnet_rt_assoc2" {
+  subnet_id      = aws_subnet.subnet_private_az2.id
+  route_table_id = aws_route_table.private_rt2.id
+}
+
+resource "aws_route_table_association" "private_subnet_rt_assoc3" {
+  subnet_id      = aws_subnet.subnet_db_az1.id
+  route_table_id = aws_route_table.private_rt1.id
+}
+
+resource "aws_route_table_association" "private_subnet_rt_assoc4" {
+  subnet_id      = aws_subnet.subnet_db_az2.id
+  route_table_id = aws_route_table.private_rt2.id
+}
