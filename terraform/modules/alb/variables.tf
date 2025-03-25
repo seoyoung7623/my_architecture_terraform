@@ -61,12 +61,3 @@ variable "hc_unhealty_threshold" {
 variable "sg_allow_comm_list" {
   type = list(string)
 }
-
-variable "asg-subnets" {
-  type = list(string)
-}
-
-# Launch Template
-variable "launch_template_id" {
-    type = string
-}

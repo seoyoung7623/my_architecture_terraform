@@ -52,11 +52,6 @@ module "alb" {
   port = var.port
   aws_s3_lb_logs_name = var.aws_s3_lb_logs_name
   sg_allow_comm_list = var.sg_allow_comm_list
-  asg-subnets = [
-    module.vpc.subnet-private-az1.id,
-    module.vpc.subnet-private-az2.id
-  ]
-  launch_template_id = module.launch_template.launch_template_id
   depends_on = [ module.vpc ]
 }
 
@@ -70,4 +65,28 @@ module "launch_template" {
   alb_sg_id = module.alb.alb-sg-id
   pub_sub_1_cidr = module.vpc.subnet-public-az1.cidr_block
   pub_sub_2_cidr = module.vpc.subnet-public-az2.cidr_block  
+ }
+
+ module "asg" {
+  source = "../modules/asg"
+
+  stage = var.stage
+  servicename = var.servicename
+  tags = var.tags
+
+  launch_template_id = module.launch_template.launch_template_id
+  asg-subnets = [
+    module.vpc.subnet-private-az1.id,
+    module.vpc.subnet-private-az2.id
+  ]
+  target_group_arn = module.alb.alb_target_group_arn
+ }
+
+ module "route53" {
+  source = "../modules/route53"
+   
+  host_name = var.host_name
+  record_type = var.record_type 
+  alb_dns_name = module.alb.alb_dns_name
+  alb_zone_id = module.alb.alb_zone_id  
  }
