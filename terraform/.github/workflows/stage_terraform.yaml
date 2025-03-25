@@ -1,0 +1,79 @@
+name: Terraform by Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "환경 선택 (예: dev, stage, prod)"
+        required: true
+        default: "dev"
+
+env:
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  backend_setup:
+    name: "🛠️ Backend 리소스 생성 (S3 + DynamoDB)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Terraform 설치
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.7"
+
+      - name: AWS 자격증명 설정
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.TF_DEV_SEOYOUNG_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.TF_DEV_SEOYOUNG_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: backend 리소스 생성
+        run: |
+          cd backend
+          terraform init
+          terraform apply -auto-approve -var="stage=${{ github.event.inputs.stage }}"
+
+  deploy_environment:
+    name: "🚀 환경별 인프라 배포"
+    runs-on: ubuntu-latest
+    needs: backend_setup
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Terraform 설치
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.7"
+
+      - name: AWS 자격증명 설정
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.TF_DEV_SEOYOUNG_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.TF_DEV_SEOYOUNG_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 환경별 디렉토리에서 init
+        run: |
+          cd environments/${{ github.event.inputs.stage }}
+          terraform init \
+            -backend-config="bucket=seoyoung-terraformstate-s3" \
+            -backend-config="key=${{ github.event.inputs.stage }}/terraform.tfstate" \
+            -backend-config="region=ap-northeast-2" \
+            -backend-config="dynamodb_table=seoyoung-terraformstate-dynamo"
+
+      - name: Terraform Plan
+        run: |
+          cd environments/${{ github.event.inputs.stage }}
+          terraform plan -input=false -var="stage=${{ github.event.inputs.stage }}"
+
+      - name: Terraform Apply
+        run: |
+          cd environments/${{ github.event.inputs.stage }}
+          terraform apply -auto-approve -input=false -var="stage=${{ github.event.inputs.stage }}"
