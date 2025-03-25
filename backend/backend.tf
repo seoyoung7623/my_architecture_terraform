@@ -46,29 +46,29 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
 }
 
 # Bucket policy (예시: 현재 사용자에게 권한 부여 – 실제 환경에 맞게 수정 가능)
-resource "aws_s3_bucket_policy" "terraform_state_policy" {
-  bucket = aws_s3_bucket.terraform_state.id
+# resource "aws_s3_bucket_policy" "terraform_state_policy" {
+#   bucket = aws_s3_bucket.terraform_state.id
 
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = "*",
-        Action = [
-          "s3:GetBucketPolicy",
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:PutObject"
-        ],
-        Resource = [
-          "arn:aws:s3:::seoyoung-terraformstate-s3",
-          "arn:aws:s3:::seoyoung-terraformstate-s3/*"
-        ]
-      }
-    ]
-  })
-}
+#   policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [
+#       {
+#         Effect = "Allow",
+#         Principal = "*",
+#         Action = [
+#           "s3:GetBucketPolicy",
+#           "s3:ListBucket",
+#           "s3:GetObject",
+#           "s3:PutObject"
+#         ],
+#         Resource = [
+#           "arn:aws:s3:::seoyoung-terraformstate-s3",
+#           "arn:aws:s3:::seoyoung-terraformstate-s3/*"
+#         ]
+#       }
+#     ]
+#   })
+# }
 
 # DynamoDB Table for state locking
 resource "aws_dynamodb_table" "terraform_lock" {
