@@ -136,5 +136,13 @@ variable "sg_allow_comm_list" {
   default = ["0.0.0.0/0"]
 }
 
-# Launch Template
+# route53
+variable "host_name" {
+  type = string
+  default = "seoyoungstudy.shop"
+}
 
+variable "record_type" {
+  type = string
+  default = "A"
+}
