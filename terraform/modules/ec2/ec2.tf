@@ -9,7 +9,7 @@ locals {
 # 퍼블릭 Instance 생성
 resource "aws_instance" "ec2" {
   ami           = var.ami
-  associate_public_ip_address = false # prod 환경에서는 true로 변경
+  associate_public_ip_address = true
   instance_type = var.instance_type
   subnet_id     = var.subnet_id
   vpc_security_group_ids = [aws_security_group.sg-ec2.id]
