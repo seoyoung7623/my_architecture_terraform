@@ -1,39 +1,33 @@
 variable "stage" {
-    type  = string
-    default = "dev"
+  type = string
 }
 
 variable "servicename" {
-    type  = string
-    default = "seoyoung"
+  type = string
 }
 
 variable "tags" {
   type = map(string)
-  default = {
-    "name" = "seoyoung-lt"
-  }
 }
 
 variable "ami" {
-    type = string
+  type = string
 }
 
 variable "instance_type" {
-    type  = string
-    default = "t3.micro"
+  type = string
 }
 
 variable "port" {
-    type  = number
+  type = number
 }
 
 variable "vpc_id" {
-    type  = string
+  type = string
 }
 
 variable "alb_sg_id" {
-    type  = string 
+  type = string
 }
 
 variable "pub_sub_1_cidr" {

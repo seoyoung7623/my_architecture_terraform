@@ -1,49 +1,43 @@
 variable "stage" {
-    type  = string
-    default = "dev"
+  type = string
 }
+
 variable "servicename" {
-    type  = string
-    default = "seoyoung"
+  type = string
 }
+
 variable "tags" {
   type = map(string)
-  default = {
-    "name" = "seoyoung-alb"
-  }
 }
 
 variable "internal" {
-    type  = bool
-    # default = true # 내부망을 사용하려면 주석 해제
-    default = false 
+  type = bool
 }
 
 variable "subnet_ids" {
-    type  = list
-    default = []
+  type = list(any)
 }
 
 variable "idle_timeout" {
-    type  = number
-    default = 60
+  type    = number
+  default = 60
 }
 
 variable "vpc_id" {
-    type  = string
+  type = string
 }
 
 variable "aws_s3_lb_logs_name" {
-    type  = string
+  type = string
 }
 
 # Health Check
 variable "port" {
-    type  = number
+  type = number
 }
 
 variable "target_type" {
-    type  = string
+  type = string
 }
 
 variable "hc_path" {
@@ -51,7 +45,7 @@ variable "hc_path" {
 }
 
 variable "hc_healty_threshold" {
-    type = number
+  type = number
 }
 
 variable "hc_unhealty_threshold" {

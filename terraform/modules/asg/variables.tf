@@ -1,19 +1,19 @@
 variable "stage" {
-    type  = string
+  type = string
 }
 variable "servicename" {
-    type  = string
+  type = string
 }
 variable "tags" {
   type = map(string)
 }
 
 variable "asg-subnets" {
-    type  = list 
+  type = list(any)
 }
 
 variable "launch_template_id" {
-    type  = string
+  type = string
 }
 
 variable "target_group_arn" {
