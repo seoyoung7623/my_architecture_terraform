@@ -26,7 +26,7 @@ variable "az" {
   default = [ "ap-northeast-2a", "ap-northeast-2c" ]
 }
 
-variable "vpc_ip_range" {
+variable "vpc_cidr" {
   type = string
   default = "172.16.1.0/24"
 }
@@ -66,30 +66,75 @@ variable "ssh_allow_ingress_list" {
 #   type = list
 # }
 
-##RDS
-variable "rds_dbname" {
-  type = string
-  default = "seoyoung-rds"
-}
-variable "rds_instance_count" {
-  type = string
-  default = "2"
-}
-variable "sg_allow_ingress_list_aurora"{
-  type = list
-  default = ["10.2.92.64/26", "10.2.92.128/26", "10.2.92.18/32"]
-}
-variable "associate_public_ip_address" {
-  type = bool
-  default = true
+# ##RDS
+# variable "rds_dbname" {
+#   type = string
+#   default = "seoyoung-rds"
+# }
+# variable "rds_instance_count" {
+#   type = string
+#   default = "2"
+# }
+# variable "sg_allow_ingress_list_aurora"{
+#   type = list
+#   default = ["10.2.92.64/26", "10.2.92.128/26", "10.2.92.18/32"]
+# }
+# variable "associate_public_ip_address" {
+#   type = bool
+#   default = true
+# }
+
+# ##KMS
+# variable "rds_kms_arn" {
+#   type = string
+#   default = "arn:aws:kms:ap-northeast-2:471112992234:key/1dbf43f7-1847-434c-bc3c-1beb1b86e480"
+# }
+# variable "ebs_kms_key_id" {
+#   type = string
+#   default = "arn:aws:kms:ap-northeast-2:471112992234:key/43b0228d-0a06-465c-b25c-7480b07b5276"
+# }
+
+# ALB
+
+variable "idle_timeout" {
+    type  = number
+    default = 60
 }
 
-##KMS
-variable "rds_kms_arn" {
-  type = string
-  default = "arn:aws:kms:ap-northeast-2:471112992234:key/1dbf43f7-1847-434c-bc3c-1beb1b86e480"
+variable "aws_s3_lb_logs_name" {
+    type  = string
+    default = "seoyoung-alb-logs-s3"
 }
-variable "ebs_kms_key_id" {
-  type = string
-  default = "arn:aws:kms:ap-northeast-2:471112992234:key/43b0228d-0a06-465c-b25c-7480b07b5276"
+
+# Health Check
+variable "port" {
+    type  = number
+    default = 80
 }
+
+variable "target_type" {
+    type  = string
+    default = "instance"
+}
+
+variable "hc_path" {
+  type = string
+  default = "/"
+}
+
+variable "hc_healty_threshold" {
+    type = number
+    default = 2
+}
+
+variable "hc_unhealty_threshold" {
+  type = number
+  default = 2
+}
+variable "sg_allow_comm_list" {
+  type = list(string)
+  default = ["0.0.0.0/0"]
+}
+
+# Launch Template
+
