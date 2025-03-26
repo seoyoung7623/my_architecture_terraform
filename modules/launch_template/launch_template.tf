@@ -8,7 +8,7 @@ resource "aws_launch_template" "aws_lt" {
     apt update -y
     apt install -y apache2 php php-mysql mysql-server mysql-client unzip wget libapache2-mod-php
 
-    a2enmod php8.1
+    a2enmod php8.3
 
     cd /var/www/html
 
