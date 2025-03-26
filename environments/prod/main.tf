@@ -8,7 +8,7 @@ terraform {
     }
 }
 module "vpc" {
-  source = "../modules/vpc"
+  source = "../../modules/vpc"
 
   stage       = var.stage
   servicename = var.servicename
@@ -19,7 +19,7 @@ module "vpc" {
 }
 
 module "ec2" {
-  source = "../modules/ec2"
+  source = "../../modules/ec2"
 
   stage       = var.stage
   servicename = var.servicename
@@ -37,7 +37,7 @@ module "ec2" {
 # }
 
 module "alb" {
-  source = "../modules/alb"
+  source = "../../modules/alb"
 
   stage       = var.stage
   servicename = var.servicename
@@ -60,7 +60,7 @@ module "alb" {
 }
 
 module "launch_template" {
-  source = "../modules/launch_template"
+  source = "../../modules/launch_template"
 
   stage       = var.stage
   servicename = var.servicename
@@ -76,7 +76,7 @@ module "launch_template" {
 }
 
 module "asg" {
-  source = "../modules/asg"
+  source = "../../modules/asg"
 
   stage       = var.stage
   servicename = var.servicename
@@ -91,7 +91,7 @@ module "asg" {
 }
 
 module "route53" {
-  source = "../modules/route53"
+  source = "../../modules/route53"
 
   host_name    = var.host_name
   record_type  = var.record_type
