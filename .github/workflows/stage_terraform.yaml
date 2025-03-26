@@ -32,11 +32,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.TF_DEV_SEOYOUNG_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: backend 리소스 생성
+      - name: S3 + DynamoDB 존재 여부 확인 후 apply
         run: |
           cd backend
-          terraform init
-          terraform apply -auto-approve -var="stage=${{ github.event.inputs.stage }}"
+
+          S3_EXISTS=$(aws s3api head-bucket --bucket seoyoung-terraformstate-s3 2>&1 || true)
+          DDB_EXISTS=$(aws dynamodb describe-table --table-name seoyoung-terraformstate-dynamo 2>&1 || true)
+
+          if echo "$S3_EXISTS" | grep -q 'Not Found'; then
+            echo "🪣 S3 버킷이 없음 → 생성 필요"
+            terraform init
+            terraform apply -auto-approve -var="stage=${{ github.event.inputs.stage }}"
+          elif echo "$DDB_EXISTS" | grep -q 'ResourceNotFoundException'; then
+            echo "📊 DynamoDB 테이블이 없음 → 생성 필요"
+            terraform init
+            terraform apply -auto-approve -var="stage=${{ github.event.inputs.stage }}"
+          else
+            echo "✅ S3 & DynamoDB 모두 존재함 → apply 생략"
+          fi
+
 
   deploy_environment:
     name: "🚀 환경별 인프라 배포"
