@@ -3,7 +3,7 @@ resource "aws_autoscaling_group" "aws_asg" {
   name                = "aws-asg-${var.stage}-${var.servicename}"
   vpc_zone_identifier = var.asg-subnets # 프라이빗 서브넷에 넣었음
   min_size            = 1
-  max_size            = 3
+  max_size            = 1
   launch_template {
     id      = var.launch_template_id
     version = "$Latest"
