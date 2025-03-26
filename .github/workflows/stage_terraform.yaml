@@ -10,10 +10,15 @@ on:
         description: "환경 선택 (예: dev, prod)"
         required: true
         default: "dev"
+      destroy:
+        description: "Terraform destroy 수행 시 DESTROY 입력"
+        required: false
+        default: ""
 
 env:
   AWS_REGION: ap-northeast-2
   STAGE: ${{ github.event.inputs.stage || 'dev' }}
+  DESTROY: ${{ github.event.inputs.destroy }}
 
 jobs:
   backend_setup:
@@ -55,9 +60,8 @@ jobs:
             echo "✅ S3 & DynamoDB 모두 존재함 → apply 생략"
           fi
 
-
   deploy_environment:
-    name: "🚀 환경별 인프라 배포"
+    name: "🚀 환경별 인프라 배포 또는 삭제"
     runs-on: ubuntu-latest
     needs: backend_setup
 
@@ -77,7 +81,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.TF_DEV_SEOYOUNG_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 환경별 디렉토리에서 init
+      - name: Terraform Init
         run: |
           cd environments/${{ env.STAGE }}
           terraform init \
@@ -86,12 +90,19 @@ jobs:
             -backend-config="region=ap-northeast-2" \
             -backend-config="dynamodb_table=seoyoung-terraformstate-dynamo"
 
-      - name: Terraform Plan
+      - name: Terraform Plan or Destroy
         run: |
           cd environments/${{ env.STAGE }}
-          terraform plan -input=false -var="stage=${{ env.STAGE }}"
+          if [[ "${{ env.DESTROY }}" == "DESTROY" ]]; then
+            echo "⚠️ Destroy 명령 실행 중..."
+            terraform destroy -auto-approve -var="stage=${{ env.STAGE }}"
+          else
+            echo "🧪 Terraform Plan 실행 중..."
+            terraform plan -input=false -var="stage=${{ env.STAGE }}"
+          fi
 
-      - name: Terraform Apply
+      - name: Terraform Apply (Only if not destroy)
+        if: ${{ env.DESTROY != 'DESTROY' }}
         run: |
           cd environments/${{ env.STAGE }}
           terraform apply -auto-approve -input=false -var="stage=${{ env.STAGE }}"
