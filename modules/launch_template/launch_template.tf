@@ -6,7 +6,7 @@ resource "aws_launch_template" "aws_lt" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     apt update -y
-    apt install -y apache2 php php-mysql mysql-server mysql-client unzip wget libapache2-mod-php
+    apt install -y apache2 php php-mysql mysql-server mysql-client unzip wget libapache2-mod-php php-curl php-gd php-xml php-mbstring php-zip 
 
     a2enmod php8.3
 
