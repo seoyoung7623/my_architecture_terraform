@@ -1,6 +1,9 @@
 name: Terraform by Environment
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       stage:
@@ -10,6 +13,7 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
+  STAGE: ${{ github.event.inputs.stage || 'dev' }}
 
 jobs:
   backend_setup:
@@ -42,11 +46,11 @@ jobs:
           if echo "$S3_EXISTS" | grep -q 'Not Found'; then
             echo "🪣 S3 버킷이 없음 → 생성 필요"
             terraform init
-            terraform apply -auto-approve -var="stage=${{ github.event.inputs.stage }}"
+            terraform apply -auto-approve -var="stage=${{ env.STAGE }}"
           elif echo "$DDB_EXISTS" | grep -q 'ResourceNotFoundException'; then
             echo "📊 DynamoDB 테이블이 없음 → 생성 필요"
             terraform init
-            terraform apply -auto-approve -var="stage=${{ github.event.inputs.stage }}"
+            terraform apply -auto-approve -var="stage=${{ env.STAGE }}"
           else
             echo "✅ S3 & DynamoDB 모두 존재함 → apply 생략"
           fi
@@ -75,19 +79,19 @@ jobs:
 
       - name: 환경별 디렉토리에서 init
         run: |
-          cd environments/${{ github.event.inputs.stage }}
+          cd environments/${{ env.STAGE }}
           terraform init \
             -backend-config="bucket=seoyoung-terraformstate-s3" \
-            -backend-config="key=${{ github.event.inputs.stage }}/terraform.tfstate" \
+            -backend-config="key=${{ env.STAGE }}/terraform.tfstate" \
             -backend-config="region=ap-northeast-2" \
             -backend-config="dynamodb_table=seoyoung-terraformstate-dynamo"
 
       - name: Terraform Plan
         run: |
-          cd environments/${{ github.event.inputs.stage }}
-          terraform plan -input=false -var="stage=${{ github.event.inputs.stage }}"
+          cd environments/${{ env.STAGE }}
+          terraform plan -input=false -var="stage=${{ env.STAGE }}"
 
       - name: Terraform Apply
         run: |
-          cd environments/${{ github.event.inputs.stage }}
-          terraform apply -auto-approve -input=false -var="stage=${{ github.event.inputs.stage }}"
+          cd environments/${{ env.STAGE }}
+          terraform apply -auto-approve -input=false -var="stage=${{ env.STAGE }}"
