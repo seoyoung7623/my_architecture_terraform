@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: "환경 선택 (예: dev, stage, prod)"
+        description: "환경 선택 (예: dev, prod)"
         required: true
         default: "dev"
 
