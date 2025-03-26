@@ -6,8 +6,7 @@ resource "aws_launch_template" "aws_lt" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     apt update -y
-    apt remove -y nginx nginx-common
-    apt install -y apache2 php php-mysql mysql-client unzip wget
+    apt install -y apache2 php php-mysql mysql-server mysql-client unzip wget
 
     cd /var/www/html
 
@@ -22,6 +21,14 @@ resource "aws_launch_template" "aws_lt" {
 
     systemctl restart apache2
     systemctl enable apache2
+
+    systemctl start mysql
+    systemctl enable mysql
+
+    mysql -e "CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+    mysql -e "CREATE USER 'wpuser'@'localhost' IDENTIFIED BY '123412340';"
+    mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wpuser'@'localhost';"
+    mysql -e "FLUSH PRIVILEGES;"
   EOF
   )
 
