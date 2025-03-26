@@ -10,6 +10,10 @@ resource "aws_launch_template" "aws_lt" {
     apt install -y apache2 php php-mysql mysql-client unzip wget
 
     cd /var/www/html
+
+    # 기존 index.html 삭제 (Apache 기본 페이지 제거)
+    rm -f index.html
+
     wget https://wordpress.org/latest.zip
     unzip latest.zip
     cp -r wordpress/* .
@@ -18,8 +22,9 @@ resource "aws_launch_template" "aws_lt" {
 
     systemctl restart apache2
     systemctl enable apache2
-    EOF
+  EOF
   )
+
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
