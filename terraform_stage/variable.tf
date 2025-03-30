@@ -1,20 +1,24 @@
 # 공통부분
 variable "region" {
+  description = "리전"
   type    = string
   default = "ap-northeast-2"
 }
 
 variable "stage" {
+  description = "작업환경"
   type    = string
   default = "dev"
 }
 
 variable "servicename" {
+  description = "서비스명"
   type    = string
   default = "terraform-seoyoung"
 }
 
 variable "tags" {
+  description = "태그"
   type = map(string)
   default = {
     "Owner" = "seoyoung"
@@ -23,11 +27,13 @@ variable "tags" {
 
 #VPC
 variable "az" {
+  description = "가용영역"
   type    = list(any)
   default = ["ap-northeast-2a", "ap-northeast-2c"]
 }
 
 variable "vpc_cidr" {
+  description = "VPC CIDR"
   type    = string
   default = "172.16.1.0/24"
 }
@@ -39,15 +45,25 @@ variable "vpc_cidr" {
 
 ##Instance
 variable "ami" {
+  description = "AMI"
   type    = string
   default = "ami-0d5bb3742db8fc264" # Ubuntu 24.04
 }
+
+variable "key_name" {
+  description = "EC2 Key Pair Name"
+  type    = string
+  default = "seoyoung-ec2-key"
+}
+
 variable "instance_type" {
+  description = "인스턴스 타입"
   type    = string
   default = "t2.micro"
 }
 
 variable "instance_ebs_size" {
+  description = "인스턴스 EBS 사이즈"
   type    = number
   default = 20
 }
@@ -57,7 +73,8 @@ variable "instance_ebs_volume" {
 }
 
 variable "ssh_allow_ingress_list" {
-  default = ["211.192.32.69/32"] # 내 고정 IP
+  description = "SSH 접속 허용 IP, 내 IP"
+  default = ["211.192.32.69/32","0.0.0.0/0"] # 내 고정 IP
 }
 
 # ALB
@@ -115,4 +132,18 @@ variable "host_name" {
 variable "record_type" {
   type    = string
   default = "A"
+}
+
+# S3
+variable "frontend_bucket" {
+    description = "The bucket name"
+    type        = string
+    default = "frontend-bucket-seoyoung-terraform-s3"
+}
+
+# Cloudfront
+variable "dev_domain_name" {
+  type        = string
+  description = "사용할 커스텀 도메인"
+  default = "dev.seoyoungstudy.shop"
 }

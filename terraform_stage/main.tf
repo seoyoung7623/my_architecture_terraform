@@ -1,14 +1,14 @@
-terraform {
-    required_version = ">= 1.0.0, < 2.0.0"
-    backend "s3" {
-        bucket = "seoyoung-terraform-state-s3"
-        key = "dev/terraform/terraform.tfstate"
-        region = "ap-northeast-2"
-        dynamodb_table = "seoyoung-terraform-state-lock"
-    }
-}
+# terraform {
+#     required_version = ">= 1.0.0, < 2.0.0"
+#     backend "s3" {
+#         bucket = "seoyoung-terraform-state-s3"
+#         key = "dev/terraform/terraform.tfstate"
+#         region = "ap-northeast-2"
+#         dynamodb_table = "seoyoung-terraform-state-lock"
+#     }
+# }
 module "vpc" {
-  source = "../modules/vpc"
+  source = "../modules/vpc_dev"
 
   stage       = var.stage
   servicename = var.servicename
@@ -26,6 +26,7 @@ module "ec2" {
   tags        = var.tags
 
   ami           = var.ami
+  key_name = var.key_name
   instance_type = var.instance_type
   subnet_id     = module.vpc.subnet_public_az1.id
   # vpc모듈이 출력(output)을 제공해야한다.
@@ -66,6 +67,8 @@ module "launch_template" {
   servicename = var.servicename
   tags        = var.tags
 
+  key_name       = var.key_name
+  openvpn_sg_id  = module.ec2.openvpn_sg_id
   ami            = var.ami
   port           = var.port
   vpc_id         = module.vpc.aws_vpc.id
@@ -97,4 +100,28 @@ module "route53" {
   record_type  = var.record_type
   alb_dns_name = module.alb.alb_dns_name
   alb_zone_id  = module.alb.alb_zone_id
+  dev_domain_name = var.dev_domain_name
+  front_dns_name = module.cloudfront.front_dns_name
+  front_hosted_zone_id = module.cloudfront.front_hosted_zone_id
+}
+
+module "s3" {
+  source = "../modules/s3"
+
+  stage       = var.stage
+  servicename = var.servicename
+  tags        = var.tags
+
+  frontend_bucket = var.frontend_bucket
+}
+
+module "cloudfront" {
+  source = "../modules/cloudfront"
+
+  stage       = var.stage
+  servicename = var.servicename
+  tags        = var.tags
+
+  frontend_bucket_regional_domain_name = module.s3.frontend_bucket_regional_domain_name
+  dev_domain_name = var.dev_domain_name
 }
