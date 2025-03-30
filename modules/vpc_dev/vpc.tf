@@ -128,10 +128,6 @@ resource "aws_eip" "eip1" {
   domain = "vpc"
 }
 
-resource "aws_eip" "eip2" {
-  domain = "vpc"
-}
-
 resource "aws_nat_gateway" "nat_gateway_az1" {
   allocation_id = aws_eip.eip1.id
   subnet_id     = aws_subnet.subnet_public_az1.id
@@ -139,16 +135,6 @@ resource "aws_nat_gateway" "nat_gateway_az1" {
   tags = merge(tomap({
     Name = "nat-gateway-az1-${var.stage}-${var.servicename}" }),
   var.tags)
-}
-
-resource "aws_nat_gateway" "nat_gateway_az2" {
-  allocation_id = aws_eip.eip2.id
-  subnet_id     = aws_subnet.subnet_public_az2.id
-  depends_on    = [aws_internet_gateway.aws-igw]
-  tags = merge(tomap({
-    Name = "nat-gateway-az2-${var.stage}-${var.servicename}" }),
-  var.tags)
-
 }
 
 resource "aws_route_table" "private_rt1" {
@@ -163,23 +149,7 @@ resource "aws_route_table" "private_rt1" {
   var.tags)
 }
 
-resource "aws_route_table" "private_rt2" {
-  vpc_id = aws_vpc.aws_vpc.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway_az2.id
-  }
-  tags = merge(tomap({
-    Name = "private-rt2-${var.stage}-${var.servicename}" }),
-  var.tags)
-}
-
 resource "aws_route_table_association" "private_subnet_rt_assoc1" {
   subnet_id      = aws_subnet.subnet_private_az1.id
   route_table_id = aws_route_table.private_rt1.id
-}
-
-resource "aws_route_table_association" "private_subnet_rt_assoc2" {
-  subnet_id      = aws_subnet.subnet_private_az2.id
-  route_table_id = aws_route_table.private_rt2.id
 }
